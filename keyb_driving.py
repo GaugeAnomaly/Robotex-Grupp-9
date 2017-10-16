@@ -1,5 +1,4 @@
 import serial
-import sys
 import curses
 
 screen = curses.initscr()
@@ -33,8 +32,4 @@ def process(c):
 while True:
     x = screen.getch()
     process(x)
-"""if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
-        line = sys.stdin.read(1)
-        if line:
-            process(line)
-"""
+    
