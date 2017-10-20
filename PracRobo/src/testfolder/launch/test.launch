@@ -1,4 +1,0 @@
-<launch>
-
-<node name="test" pkg="testfolder" type="test" />
-</launch>

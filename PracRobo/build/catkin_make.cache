@@ -1,2 +1,0 @@
-
--DCATKIN_DEVEL_PREFIX=/home/tudeng/PracRobo/devel -DCMAKE_INSTALL_PREFIX=/home/tudeng/PracRobo/install -G Unix Makefiles

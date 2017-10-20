@@ -1,2 +1,13 @@
 .idea
 *.swp
+*~
+cmake_install.cmake
+build/
+install/
+devel/
+bin/
+lib/
+msg_gen/
+srv_gen/
+src/CMakeLists.txt
+.catkin_workspace

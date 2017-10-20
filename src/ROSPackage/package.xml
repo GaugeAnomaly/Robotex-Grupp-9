@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>test</name>
+  <name>ros_package</name>
   <version>0.0.0</version>
-  <description>The test package</description>
+  <description>The initial ROS package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->

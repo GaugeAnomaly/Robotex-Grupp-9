@@ -1,0 +1,4 @@
+<launch>
+
+<node name="test" pkg="ros_package" type="test.py" />
+</launch>
