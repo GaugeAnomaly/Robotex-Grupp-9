@@ -11,10 +11,22 @@ def set_speed(sp1, sp2, sp3):
     ser.write(str.encode('sd0:{}:{}:{}\n'.format(sp1, sp2, sp3)))
 
 def process(c):
-    if c == ord('a'):
-        screen.addstr(0, 0, 'lol')
-    elif c == 'd':
-        pass
+    if c == ord('w'):
+        screen.addstr(0, 0, 'w')
+    elif c == ord('a'):
+        screen.addstr(0, 0, 'a')
+    elif c == ord('s'):
+        screen.addstr(0, 0, 's')
+    elif c == ord('d'):
+        screen.addstr(0, 0, 'd')
+    elif c == ord('q'):
+        screen.addstr(0, 0, 'q')
+    elif c == ord('e'):
+        screen.addstr(0, 0, 'e')
+    elif c == ord('z'):
+        screen.addstr(0, 0, 'z')
+    elif c == ord('x'):
+        screen.addstr(0, 0, 'x')
     elif c == curses.KEY_RIGHT:
         screen.addstr(0, 0, 'right')
         set_speed(-10,-10,-10)
@@ -32,4 +44,3 @@ def process(c):
 while True:
     x = screen.getch()
     process(x)
-    

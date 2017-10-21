@@ -16,7 +16,7 @@ def init_robot_connection():
 
 def set_speeds(sp1, sp2, sp3):
     ser.write(str.encode('sd0:{}:{}:{}\n'.format(sp1, sp2, sp3)))
-    #print(str.encode('sd0:{}:{}:{}\n'.format(sp1, sp2, sp3)))
+    #  print(str.encode('sd0:{}:{}:{}\n'.format(sp1, sp2, sp3)))
 
 
 def set_speeds_for_direction(angle):
