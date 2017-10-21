@@ -1,8 +1,21 @@
+#!/usr/bin env python
+
 import cv2
 import numpy as np
-cap = cv2.VideoCapture(0)
+import rospy
+from std_msgs.msg import String
+
+cap = cv2.VideoCapture(1)
 
 index = 1
+
+
+def ballDistanceInfo(string):
+    pub = rospy.Publisher('balldistance', String, queue_size=10)
+    rospy.init_node('balldistanceinfo')
+    pub.publish(string)
+
+
 
 def distanceBalls(color, mask, frame):
     global index
@@ -26,7 +39,7 @@ def distanceBalls(color, mask, frame):
                            (0, 255, 255), 2)
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
                 index = 1
-                print(color, x, y)
+                ballDistanceInfo("\""+color+"--"+str(x)+"--"+str(y)+"\"")
         except ZeroDivisionError:
             pass
 
