@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
 catkin_make
-. ./devel/setup.bash
+source devel/setup.bash
+echo "DONE"

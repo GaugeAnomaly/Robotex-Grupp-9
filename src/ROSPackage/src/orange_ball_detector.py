@@ -1,11 +1,10 @@
-#!/usr/bin env python
-
+#!/usr/bin/env python
 import cv2
 import numpy as np
 import rospy
 from std_msgs.msg import String
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 index = 1
 
