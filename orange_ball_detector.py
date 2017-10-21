@@ -18,27 +18,26 @@ def distanceBalls(color, mask):
         M = cv2.moments(c)
         try:
             center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+            # only proceed if the radius meets a minimum size
+            if radius > 10 and index % 10 == 0:
+                # draw the circle and centroid on the frame,
+                # then update the list of tracked points
+                cv2.circle(res, (int(x), int(y)), int(radius),
+                           (0, 255, 255), 2)
+                cv2.circle(res, center, 5, (0, 0, 255), -1)
+                index = 1
+                print(color, x, y)
         except ZeroDivisionError:
             pass
 
-        # only proceed if the radius meets a minimum size
-        if radius > 1 and index % 1000:
-            # draw the circle and centroid on the frame,
-            # then update the list of tracked points
-            #   cv2.circle(res, (int(x), int(y)), int(radius),
-            #             (0, 255, 255), 2)
-            #  cv2.circle(res, center, 5, (0, 0, 255), -1)
-            index = 1
-            print(color, x, y)
     index = index + 1
-    print(index)
 
     return
 
 
 
 
-while(1):
+while(True):
     # Take each frame
     _, frame = cap.read()
     # Convert BGR to HSV
@@ -63,7 +62,8 @@ while(1):
     mask_orange = cv2.inRange(hsv, lower_orange, upper_orange)
     mask_green = cv2.inRange(hsv, lower_green, upper_green)
     mask = mask_green + mask_orange
-    #mask = cv2.erode(mask, None, iterations=2)
+    #
+    mask = cv2.erode(mask, None, iterations=2)
     mask = cv2.dilate(mask, None, iterations=2)
 
     distanceBalls("green", mask_green)
