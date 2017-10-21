@@ -4,7 +4,7 @@ cap = cv2.VideoCapture(0)
 
 index = 1
 
-def distanceBalls(color, mask):
+def distanceBalls(color, mask, frame):
     global index
     cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
                             cv2.CHAIN_APPROX_SIMPLE)[-2]
@@ -22,9 +22,9 @@ def distanceBalls(color, mask):
             if radius > 10 and index % 10 == 0:
                 # draw the circle and centroid on the frame,
                 # then update the list of tracked points
-                cv2.circle(res, (int(x), int(y)), int(radius),
+                cv2.circle(frame, (int(x), int(y)), int(radius),
                            (0, 255, 255), 2)
-                cv2.circle(res, center, 5, (0, 0, 255), -1)
+                cv2.circle(frame, center, 5, (0, 0, 255), -1)
                 index = 1
                 print(color, x, y)
         except ZeroDivisionError:
@@ -66,8 +66,8 @@ while(True):
     mask = cv2.erode(mask, None, iterations=2)
     mask = cv2.dilate(mask, None, iterations=2)
 
-    distanceBalls("green", mask_green)
-    distanceBalls("orange", mask_orange)
+    distanceBalls("green", mask_green, frame)
+    distanceBalls("orange", mask_orange, frame)
 
     # Bitwise-AND mask and original image
     res = cv2.bitwise_and(frame,frame, mask= mask)
