@@ -1,0 +1,4 @@
+<launch>
+
+<node name="orange_ball_detector" pkg="ros_package" type="orange_ball_detector.py" />
+</launch>
