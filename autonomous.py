@@ -1,8 +1,8 @@
 from time import sleep
 from robot_movements import *
 
-cam_width = n
-cam_height = m
+cam_width = 1000
+cam_height = 1000
 
 def ball_in_sight():  # returns true, if there is actually a large blob of pixels that make up the ball
     pass
