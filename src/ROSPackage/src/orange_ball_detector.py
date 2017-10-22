@@ -3,21 +3,15 @@ import cv2
 import numpy as np
 import rospy
 from std_msgs.msg import String
-
 cap = cv2.VideoCapture(0)
-
-index = 1
-
+pub = rospy.Publisher('balldistance', String, queue_size=10)
+rospy.init_node('orange_ball_detector')
 
 def ballDistanceInfo(string):
-    pub = rospy.Publisher('balldistance', String, queue_size=10)
-    rospy.init_node('balldistanceinfo')
     pub.publish(string)
 
 
-
 def distanceBalls(color, mask, frame):
-    global index
     cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
                             cv2.CHAIN_APPROX_SIMPLE)[-2]
     center = None
@@ -31,25 +25,23 @@ def distanceBalls(color, mask, frame):
         try:
             center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
             # only proceed if the radius meets a minimum size
-            if radius > 10 and index % 10 == 0:
+            #rospy.loginfo(index % 10)
+            if radius > 10:
                 # draw the circle and centroid on the frame,
                 # then update the list of tracked points
                 cv2.circle(frame, (int(x), int(y)), int(radius),
                            (0, 255, 255), 2)
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
-                index = 1
                 ballDistanceInfo("\""+color+"--"+str(x)+"--"+str(y)+"\"")
         except ZeroDivisionError:
             pass
-
-    index = index + 1
 
     return
 
 
 
 
-while(True):
+while not rospy.is_shutdown():
     # Take each frame
     _, frame = cap.read()
     # Convert BGR to HSV
@@ -82,10 +74,10 @@ while(True):
     distanceBalls("orange", mask_orange, frame)
 
     # Bitwise-AND mask and original image
-    res = cv2.bitwise_and(frame,frame, mask= mask)
-    cv2.imshow('frame',frame)
-    cv2.imshow('mask',mask)
-    cv2.imshow('res',res)
+    res = cv2.bitwise_and(frame, frame, mask=mask)
+    cv2.imshow('frame', frame)
+    cv2.imshow('mask', mask)
+    cv2.imshow('res', res)
     k = cv2.waitKey(5) & 0xFF
     if k == 27:
         break
