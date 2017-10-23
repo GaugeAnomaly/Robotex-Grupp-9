@@ -1,5 +1,7 @@
 .idea
 *.swp
+*.pyc
+*__pycache__/
 *~
 cmake_install.cmake
 build/

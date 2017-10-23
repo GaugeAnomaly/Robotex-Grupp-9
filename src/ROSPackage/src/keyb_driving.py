@@ -34,10 +34,10 @@ def process(c):
         set_speeds_for_direction(135)
     elif c == curses.KEY_RIGHT:
         screen.addstr(0, 0, 'right')
-        set_speeds(-10,-10,-10)
+        set_speeds(10,10,10)
     elif c == curses.KEY_LEFT:
         screen.addstr(0, 0, 'left')
-        set_speeds(10,10,10)
+        set_speeds(-10,-10,-10)
     elif c == curses.KEY_UP:
         screen.addstr(0, 0, 'up')
     elif c == curses.KEY_DOWN:

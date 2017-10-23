@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import rospy
 from std_msgs.msg import String
+from time import sleep
 cap = cv2.VideoCapture(0)
 pub = rospy.Publisher('balldistance', String, queue_size=10)
 rospy.init_node('orange_ball_detector')
@@ -32,16 +33,20 @@ def distanceBalls(color, mask, frame):
                 cv2.circle(frame, (int(x), int(y)), int(radius),
                            (0, 255, 255), 2)
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
-                ballDistanceInfo("\""+color+"--"+str(x)+"--"+str(y)+"\"")
+                ballDistanceInfo(color+"--"+str(x)+"--"+str(y))
+            else:
+                ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1))
         except ZeroDivisionError:
             pass
-
+    else:
+        ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1))
     return
 
 
 
 
 while not rospy.is_shutdown():
+    sleep(0.02)
     # Take each frame
     _, frame = cap.read()
     # Convert BGR to HSV
@@ -54,7 +59,7 @@ while not rospy.is_shutdown():
     lower_orange = np.array([5, 90, 220])
     upper_orange = np.array([30, 255, 255])
 
-    lower_green = np.array([60, 120, 0])
+    lower_green = np.array([40, 100, 50])
     upper_green = np.array([85, 240, 255])
 
     #HSV Color
@@ -67,11 +72,11 @@ while not rospy.is_shutdown():
     mask_green = cv2.inRange(hsv, lower_green, upper_green)
     mask = mask_green + mask_orange
     #
-    mask = cv2.erode(mask, None, iterations=2)
-    mask = cv2.dilate(mask, None, iterations=2)
+    #mask = cv2.erode(mask, None, iterations=2)
+    #mask = cv2.dilate(mask, None, iterations=2)
 
     distanceBalls("green", mask_green, frame)
-    distanceBalls("orange", mask_orange, frame)
+    #distanceBalls("orange", mask_orange, frame)
 
     # Bitwise-AND mask and original image
     res = cv2.bitwise_and(frame, frame, mask=mask)

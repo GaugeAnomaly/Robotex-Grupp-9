@@ -1,4 +1,4 @@
 <launch>
-
+<node name="autonomous_logic_node" pkg="ros_package" type="autonomous.py" />
 <node name="orange_ball_detector" pkg="ros_package" type="orange_ball_detector.py" />
 </launch>

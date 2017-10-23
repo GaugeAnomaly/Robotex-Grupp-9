@@ -6,12 +6,16 @@ speed1 = 0
 speed2 = 0
 speed3 = 0
 rot_delta = 0
-robot_speed = 20
+robot_speed = 30
 
 
 def init_robot_connection():
     global ser
-    ser = serial.Serial('/dev/ttyACM0')
+    ser = serial.Serial('/dev/ttyACM1')
+
+
+def deinit_robot_connection():
+    ser.close()
 
 
 def set_speeds(sp1, sp2, sp3):
@@ -36,10 +40,15 @@ def rotation_speed(angular_speed):
     speed1 += rot_delta
     speed2 += rot_delta
     speed3 += rot_delta
+    set_speeds(speed1, speed2, speed3)
 
 
 def stop_moving():
     set_speeds(0, 0, 0)
+
+
+def stop_rotating():
+    rotation_speed(0)
 
 
 def move_left(secs):
@@ -67,8 +76,17 @@ def move_backward(secs):
 
 
 def turn_left(secs):
-    pass
+    set_speeds(-5, -5, -5)
+    sleep(secs)
+    stop_rotating()
 
 
 def turn_right(secs):
-    pass
+    set_speeds(5, 5, 5)
+    sleep(secs)
+    stop_rotating()
+
+if __name__ == '__main__':
+    init_robot_connection()
+    move_forward(0.5)
+    deinit_robot_connection()
