@@ -58,7 +58,7 @@ def ball_is_caught():
         return False
 
 while not rospy.is_shutdown():
-    rospy.loginfo("%s %d %d", ball_in_sight, cor_x, cor_y)
+    #rospy.loginfo("%s %d %d", ball_in_sight, cor_x, cor_y)
     if not ball_in_sight:
         pass
         # This can also be turn_right(0.5)
@@ -73,8 +73,8 @@ while not rospy.is_shutdown():
             move_forward(0.1)  # also takes seconds
             if ball_is_caught():  # if the ball is very close to the front of the robot
                 ball_caught = True
-                rospy.loginfo("ball caught")
+                #rospy.loginfo("ball caught")
         if ball_caught and not ball_is_caught():  # if the ball was caught previously but not anymore
-            rospy.loginfo("ball lost")
+            #rospy.loginfo("ball lost")
             ball_caught = False
 deinit_robot_connection()

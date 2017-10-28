@@ -1,7 +1,6 @@
-import serial
 from math import cos, radians
 from time import sleep
-ser = None
+from robot_serial import *
 speed1 = 0
 speed2 = 0
 speed3 = 0
@@ -9,18 +8,8 @@ rot_delta = 0
 robot_speed = 30
 
 
-def init_robot_connection():
-    global ser
-    ser = serial.Serial('/dev/ttyACM1')
-
-
-def deinit_robot_connection():
-    ser.close()
-
-
 def set_speeds(sp1, sp2, sp3):
-    ser.write(str.encode('sd0:{}:{}:{}\n'.format(sp1, sp2, sp3)))
-    #  print(str.encode('sd0:{}:{}:{}\n'.format(sp1, sp2, sp3)))
+    serial_write('sd0:{}:{}:{}\n'.format(sp1, sp2, sp3))
 
 
 def set_speeds_for_direction(angle):

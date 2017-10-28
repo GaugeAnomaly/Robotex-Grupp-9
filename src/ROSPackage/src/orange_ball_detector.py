@@ -17,27 +17,28 @@ def distanceBalls(color, mask, frame):
                             cv2.CHAIN_APPROX_SIMPLE)[-2]
     center = None
     if len(cnts) > 0:
-        # find the largest contour in the mask, then use
-        # it to compute the minimum enclosing circle and
-        # centroid
-        c = max(cnts, key=cv2.contourArea)
-        ((x, y), radius) = cv2.minEnclosingCircle(c)
-        M = cv2.moments(c)
-        try:
-            center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-            # only proceed if the radius meets a minimum size
-            #rospy.loginfo(index % 10)
-            if radius > 10:
-                # draw the circle and centroid on the frame,
-                # then update the list of tracked points
-                cv2.circle(frame, (int(x), int(y)), int(radius),
-                           (0, 255, 255), 2)
-                cv2.circle(frame, center, 5, (0, 0, 255), -1)
-                ballDistanceInfo(color+"--"+str(x)+"--"+str(y))
-            else:
-                ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1))
-        except ZeroDivisionError:
-            pass
+        for c in cnts:
+            # find the largest contour in the mask, then use
+            # it to compute the minimum enclosing circle and
+            # centroid
+            # c = max(cnts, key=cv2.contourArea)
+            ((x, y), radius) = cv2.minEnclosingCircle(c)
+            M = cv2.moments(c)
+            try:
+                center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+                # only proceed if the radius meets a minimum size
+                #rospy.loginfo(index % 10)
+                if radius > 10:
+                    # draw the circle and centroid on the frame,
+                    # then update the list of tracked points
+                    cv2.circle(frame, (int(x), int(y)), int(radius),
+                               (0, 255, 255), 2)
+                    cv2.circle(frame, center, 5, (0, 0, 255), -1)
+                    ballDistanceInfo(color+"--"+str(x)+"--"+str(y))
+                else:
+                    ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1))
+            except ZeroDivisionError:
+                pass
     else:
         ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1))
     return
