@@ -12,6 +12,42 @@ ball_in_sight = False
 ball_caught = False
 caught_lower_threshold = cam_height * 0.83
 
+state = looking_for_ball
+
+def wait():
+    global state
+    #if start:
+    #   state = looking_for_ball
+
+def looking_for_ball():
+    global state
+    state = centering_ball
+    pass
+
+def centering_ball():
+    global state
+    pass
+
+def moving_to_ball():
+    global state
+    pass
+
+def catch_ball():
+    global state
+    pass
+
+def find_basket():
+    global state
+    pass
+
+def moving_to_basket():
+    global state
+    pass
+
+def throw_ball():
+    global state
+    pass
+
 
 def callback(data):
     global cor_x, cor_y, ball_in_sight
@@ -58,6 +94,11 @@ def ball_is_caught():
         return False
 
 while not rospy.is_shutdown():
+    state()
+
+
+
+
     #rospy.loginfo("%s %d %d", ball_in_sight, cor_x, cor_y)
     if not ball_in_sight:
         pass
