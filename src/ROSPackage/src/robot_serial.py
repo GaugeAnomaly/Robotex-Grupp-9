@@ -1,5 +1,7 @@
 import serial
+
 ser = None
+
 
 def init_robot_connection():
     global ser

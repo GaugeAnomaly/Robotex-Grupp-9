@@ -1,6 +1,8 @@
 from math import cos, radians
 from time import sleep
-from robot_serial import *
+
+from src.ROSPackage.src.robot_serial import *
+
 speed1 = 0
 speed2 = 0
 speed3 = 0
@@ -11,6 +13,9 @@ robot_speed = 30
 def set_speeds(sp1, sp2, sp3):
     serial_write('sd0:{}:{}:{}\n'.format(sp1, sp2, sp3))
 
+
+def set_thrower_speed(speed):
+    serial_write('d:{}\n'.format(speed))
 
 def set_speeds_for_direction(angle):
     global robot_speed, speed1, speed2, speed3
@@ -74,6 +79,31 @@ def turn_right(secs):
     set_speeds(5, 5, 5)
     sleep(secs)
     stop_rotating()
+
+
+def move_left_state():
+    set_speeds_for_direction(270)
+
+
+def move_right_state():
+    set_speeds_for_direction(90)
+
+
+def move_forward_state():
+    set_speeds_for_direction(0)
+
+
+def move_backward_state():
+    set_speeds_for_direction(180)
+
+
+def turn_left_state(speed):
+    set_speeds(-speed, -speed, -speed)
+
+
+def turn_right_state(speed):
+    set_speeds(speed, speed, speed)
+
 
 if __name__ == '__main__':
     init_robot_connection()

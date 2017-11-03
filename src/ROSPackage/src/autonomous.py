@@ -1,121 +1,156 @@
 #!/usr/bin/env python
-from time import sleep
-from robot_movements import *
-from std_msgs.msg import String
 import rospy
+from std_msgs.msg import String
+
+from src.ROSPackage.src.robot_movements import *
+
 rospy.init_node('autonomous_logic_node', anonymous=True)
+#  If referee has given the start but not the stop command
+allowed_to_play = True
+#  Camera dimensions for reference
 cam_width = 640
 cam_height = 480
-cor_x = -1
-cor_y = -1
+#  Current coordinates of the main ball and the basket in sight
+ball_x = -1
+ball_y = -1
+basket_x = -1
+basket_y = -1
+#  Booleans that get updated via callbacks
 ball_in_sight = False
+basket_in_sight = False
 ball_caught = False
+#  Maximum turning speed
+max_turn_speed = 5
+
 caught_lower_threshold = cam_height * 0.83
-
-state = looking_for_ball
-
-def wait():
-    global state
-    #if start:
-    #   state = looking_for_ball
-
-def looking_for_ball():
-    global state
-    state = centering_ball
-    pass
-
-def centering_ball():
-    global state
-    pass
-
-def moving_to_ball():
-    global state
-    pass
-
-def catch_ball():
-    global state
-    pass
-
-def find_basket():
-    global state
-    pass
-
-def moving_to_basket():
-    global state
-    pass
-
-def throw_ball():
-    global state
-    pass
+## Ball centering variables
+center_x = cam_width / 2
+center_y = cam_height / 2
+threshold_x1 = center_x - int(cam_width / 20)
+threshold_x2 = center_x + int(cam_width / 20)
 
 
-def callback(data):
-    global cor_x, cor_y, ball_in_sight
-    #rospy.loginfo(data.data)
+# Functions
+#  TODO: take into account the refereee start, ping and stop signals
+def referee_callback(data):
+    global allowed_to_play
+    #  allowed_to_paly = data.data...
+
+
+# TODO: get basket information
+def cam_callback(data):
+    global ball_x, ball_y, ball_in_sight, basket_in_sight, basket_x, basket_y
+    # rospy.loginfo(data.data)
     parsed_data = data.data.split("--")
     if parsed_data[0] == 'green':
         if float(parsed_data[1]) < 0:
             ball_in_sight = False
-            #rospy.loginfo("%s %d %d", ball_in_sight, cor_x, cor_y)
+            # rospy.loginfo("%s %d %d", ball_in_sight, ball_x, ball_y)
         else:
-            cor_x = float(parsed_data[1])
-            cor_y = float(parsed_data[2])
+            ball_x = float(parsed_data[1])
+            ball_y = float(parsed_data[2])
             ball_in_sight = True
-            #rospy.loginfo("%s %d %d", ball_in_sight, cor_x, cor_y)
+            # rospy.loginfo("%s %d %d", ball_in_sight, ball_x, ball_y)
+    if parsed_data[0] == 'orange':
+        if float(parsed_data[1]) < 0:
+            basket_in_sight = True
+        else:
+            basket_x = float(parsed_data[1])
+            basket_y = float(parsed_data[2])
+            basket_in_sight = True
 
 
-rospy.Subscriber("balldistance", String, callback)
+# TODO: make turning speed proportional to offset
+def center_ball():
+    if ball_in_sight:
+        if threshold_x1 <= ball_x <= threshold_x2:
+            stop_rotating()
+        else:
+            if ball_x < threshold_x1:
+                turn_left_state(max([(threshold_x1 - ball_x) * 0.01, max_turn_speed]))
+            elif ball_x > threshold_x2:
+                turn_right_state(max([(ball_x - threshold_x2) * 0.01, max_turn_speed]))
+
+
+# TODO: make moving proportional to offset
+def center_basket():
+    if basket_in_sight:
+        if threshold_x1 <= basket_x <= threshold_x2:
+            stop_moving()
+        else:
+            if basket_x < threshold_x1:
+                move_right_state()
+            elif basket_x > threshold_x2:
+                move_left_state()
+
+
+# TODO: implement calculation
+def calculate_thrower_speed():
+    return 200
+
+
+# Predicate functions
+def ball_is_caught() -> bool:
+    return ball_y > caught_lower_threshold
+
+
+def ball_is_centered() -> bool:
+    return threshold_x1 <= ball_x <= threshold_x2
+
+
+def basket_is_centered() -> bool:
+    return threshold_x1 <= basket_x <= threshold_x2
+
+
+# States
+#  TODO: add initial ball discovering rotation and maybe spatial mapping
+def looking_for_ball():
+    global state
+    if ball_in_sight:
+        state = moving_to_ball
+
+
+def moving_to_ball():
+    global state
+    if ball_in_sight:
+        center_ball()
+        if not ball_is_caught():
+            move_forward_state()
+        else:
+            state = finding_basket
+    else:
+        state = looking_for_ball
+
+
+# Assuming the ball is found, the robot will twirl around the ball until both the ball and the basket are centered
+def finding_basket():
+    global state
+    if ball_in_sight and not basket_in_sight:
+        move_left_state()
+        center_ball()
+    elif ball_in_sight and basket_in_sight:
+        center_ball()
+        center_basket()
+        if ball_is_centered() and basket_is_centered():
+            stop_moving()  # just in case
+            stop_rotating()
+            state = throw_ball
+    else:
+        state = looking_for_ball
+
+
+def throw_ball():
+    global state
+    set_thrower_speed(calculate_thrower_speed())
+    move_forward(0.5)
+    state = looking_for_ball
+
+
+state = looking_for_ball
+rospy.Subscriber("balldistance", String, cam_callback)
 init_robot_connection()
 
-def center_view_on_ball():  # if ball is close enough to the center, this function can just pass
-    center_x = cam_width/2
-    center_y = cam_height/2
-    threshold_x1 = center_x - int(cam_width/20)
-    threshold_x2 = center_x + int(cam_width/20)
-
-    while ball_in_sight and not rospy.is_shutdown():
-        if threshold_x1 <= cor_x and cor_x <= threshold_x2:
-            break
-        else:
-            if cor_x < threshold_x1:
-                turn_left(0.1)
-                if cor_x > threshold_x2:
-                    turn_right(0.05)
-            elif cor_x > threshold_x2:
-                turn_right(0.1)
-                if cor_x < threshold_x1:
-                    turn_left(0.05)
-
-
-def ball_is_caught():
-    if cor_y > caught_lower_threshold:
-        return True
-    else:
-        return False
-
-while not rospy.is_shutdown():
+while not rospy.is_shutdown() and allowed_to_play:
     state()
 
-
-
-
-    #rospy.loginfo("%s %d %d", ball_in_sight, cor_x, cor_y)
-    if not ball_in_sight:
-        pass
-        # This can also be turn_right(0.5)
-        #turn_left(0.5)  # takes time in seconds as argument
-        #rospy.loginfo("ball not in sight")
-    else:
-        while ball_in_sight and not ball_caught and not rospy.is_shutdown():
-            #rospy.loginfo("%s %d %d", ball_in_sight, cor_x, cor_y)
-            #rospy.loginfo("Im here")
-            #rospy.loginfo("ball in sight and not caught")
-            center_view_on_ball()  # only rotates to the correct position
-            move_forward(0.1)  # also takes seconds
-            if ball_is_caught():  # if the ball is very close to the front of the robot
-                ball_caught = True
-                #rospy.loginfo("ball caught")
-        if ball_caught and not ball_is_caught():  # if the ball was caught previously but not anymore
-            #rospy.loginfo("ball lost")
-            ball_caught = False
 deinit_robot_connection()
