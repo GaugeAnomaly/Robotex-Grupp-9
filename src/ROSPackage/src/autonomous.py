@@ -24,7 +24,7 @@ ball_caught = False
 max_turn_speed = 30
 max_move_speed = 10
 
-caught_lower_threshold = cam_height * 0.95
+caught_lower_threshold = cam_height * 0.80
 ## Ball centering variables
 center_x = cam_width / 2
 center_y = cam_height / 2
@@ -74,7 +74,7 @@ def center_ball():
             stop_rotating()
         else:
             if ball_x < threshold_x1:
-                turn_left_state(min([(center_x - ball_x) * 0.17, max_turn_speed]))
+                turn_left_state(min([(center_x - ball_x) * 0.20, max_turn_speed]))
             elif ball_x > threshold_x2:
                 rospy.loginfo(min([(ball_x - center_x) * 0.20, max_turn_speed]))
                 turn_right_state(min([(ball_x - center_x) * 0.20, max_turn_speed]))
@@ -87,9 +87,9 @@ def center_basket():
             stop_moving()
         else:
             if basket_x < threshold_x1:
-                move_right_state(min([(center_x - basket_x) * 0.06, max_move_speed]))
+                move_right_state(min([(center_x - basket_x) * 0.1, max_move_speed]))
             elif basket_x > threshold_x2:
-                move_left_state(min([(basket_x - center_x) * 0.06, max_move_speed]))
+                move_left_state(min([(basket_x - center_x) * 0.1, max_move_speed]))
 
 
 # TODO: implement calculation
