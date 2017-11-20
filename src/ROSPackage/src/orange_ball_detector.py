@@ -11,7 +11,7 @@ rospy.init_node('orange_ball_detector')
 cam_width = 640
 cam_height = 480
 
-caught_lower_threshold = cam_height * 0.80
+caught_lower_threshold = int(cam_height * 0.80)
 ## Ball centering variables
 offset = 10
 center_x = cam_width / 2 + offset
@@ -144,6 +144,8 @@ def draw_helper_lines(frame):
     # Ball thresholds - yellow
     cv2.line(frame, (0, ball_threshold_low), (cam_width, ball_threshold_low), (0, 255, 255))
     cv2.line(frame, (0, ball_threshold_high), (cam_width, ball_threshold_high), (0, 255, 255))
+    #Ball is caught
+    cv2.line(frame, (0, caught_lower_threshold), (cam_width, caught_lower_threshold), (0, 0, 255))
 
 while not rospy.is_shutdown():
     # Take each frame

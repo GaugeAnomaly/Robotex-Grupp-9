@@ -112,7 +112,7 @@ def center_basket():
 def calculate_thrower_speed():
     for i in range(len(widths)):
         if widths[i] > basket_width + (basket_width * 0.1):
-            return powers[i]
+            return powers[i+2]
 
     #return 140 + 150 - basket_width
 
@@ -132,7 +132,7 @@ def basket_is_centered():
 def transition_to_state(newstate):
     global state
     allowed_to_play = False
-    rospy.loginfo(newstate)
+    # rospy.loginfo(newstate)
     state = newstate
 
 
@@ -204,7 +204,8 @@ def throw_ball():
 def waiting_for_referee():
     # rospy.loginfo(ball_is_centered())
     #rospy.loginfo(ball_x)
-    #sleep(0.1)
+    rospy.loginfo(ball_caught)
+    sleep(0.1)
     pass
 
 # Only for testing
@@ -216,7 +217,7 @@ def spinning_thrower():
 def twirl():
     set_speeds(0,0,20)
 
-state = looking_for_ball
+state = waiting_for_referee
 # state = waiting_for_referee
 rospy.Subscriber("balldistance", String, cam_callback)
 rospy.Subscriber("referee", Bool, referee_callback)
