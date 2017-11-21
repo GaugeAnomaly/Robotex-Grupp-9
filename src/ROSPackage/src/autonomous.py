@@ -88,10 +88,14 @@ def center_ball():
         else:
             if ball_x < threshold_x1:
                 turn_left_state(max_turn_speed)
+                sleep(0.01)
+                stop_rotating()
                 # turn_left_state(max_turn_speed * (cam_height * 0.8 ball_y)
                 # turn_left_state(min([(center_x - ball_x) * 0.40, max_turn_speed]))
             elif ball_x > threshold_x2:
                 turn_right_state(max_turn_speed)
+                sleep(0.01)
+                stop_rotating()
                 #rospy.loginfo(min([(ball_x - center_x) * 0.20, max_turn_speed]))
                 # turn_right_state(min([(ball_x - center_x) * 0.40, max_turn_speed]))
 
@@ -103,9 +107,15 @@ def center_basket():
             stop_moving()
         else:
             if basket_x < threshold_x1:
-                move_right_state(min([(center_x - basket_x) * 0.2, max_move_speed]))
+                # move_right_state(min([(center_x - basket_x) * 0.2, max_move_speed]))
+                move_right_state(max_move_speed)
+                sleep(0.01)
+                stop_moving()
             elif basket_x > threshold_x2:
-                move_left_state(min([(basket_x - center_x) * 0.2, max_move_speed]))
+                # move_left_state(min([(basket_x - center_x) * 0.2, max_move_speed]))
+                move_left_state(max_move_speed)
+                sleep(0.01)
+                stop_moving()
 
 
 # TODO: implement calculation
@@ -176,6 +186,8 @@ def finding_basket():
         # rospy.loginfo("basket %d %d %d", threshold_x1, basket_x + offset, threshold_x2)
         # rospy.loginfo("ball %d %d %d", threshold_x1, ball_x + offset, threshold_x2)
         move_left_state(10)
+        sleep(0.01)
+        stop_moving()
         center_ball()
     elif ball_in_sight and basket_in_sight:
         center_ball()
@@ -233,3 +245,4 @@ while not rospy.is_shutdown() and allowed_to_play:
     #rospy.loginfo(state)
 
 deinit_robot_connection()
+

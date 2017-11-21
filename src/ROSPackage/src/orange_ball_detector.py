@@ -24,6 +24,11 @@ ball_threshold_high = int(cam_height / 6)
 
 basket_threshold_low = int(cam_height * 2 / 6)
 
+def slider_callback(string):
+    rospy.loginfo(string)
+
+rospy.Subscriber("slider_values", String, slider_callback)
+
 def ballDistanceInfo(string):
     pub.publish(string)
 
@@ -215,3 +220,4 @@ while not rospy.is_shutdown():
     if k == 27:
         break
 cv2.destroyAllWindows()
+
