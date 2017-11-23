@@ -5,7 +5,10 @@ import rospy
 from std_msgs.msg import Bool
 pub = rospy.Publisher('referee', Bool, queue_size=2)
 rospy.init_node('rf_node')
-my_ident = 'OP'
+rate = rospy.Rate(200)
+my_field = 'O'
+my_letter = 'P'
+my_ident = my_field + my_letter
 
 while not rospy.is_shutdown():
     with serial.Serial('/dev/ttyACM0', timeout=1) as s:
@@ -19,11 +22,13 @@ while not rospy.is_shutdown():
         #print("Identiy: " + ident)
         req = cmd.split("-")[0][3:]
         #print("Command: " + req)
-        if ident == my_ident:
+        if ident == my_ident or ident == my_field + 'x':
             #print("Identity match, sending ACK")
             if req == 'START':
                 pub.publish(True)
             if req == 'STOP':
                 pub.publish(False)
-            s.write(str.encode("rf:a" + my_ident + "ACK------\n"))
+            if ident == my_ident:
+                s.write(str.encode("rf:a" + my_ident + "ACK------\n"))
             #print("rf:a"+ my_ident + "ACK------\n")
+        rate.sleep()

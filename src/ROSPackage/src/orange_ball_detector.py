@@ -4,28 +4,38 @@ import numpy as np
 import rospy
 from std_msgs.msg import String
 from time import sleep
+from math import *
 cap = cv2.VideoCapture(0)
 # cap.set(13, 0.6)
 pub = rospy.Publisher('balldistance', String, queue_size=2)
 rospy.init_node('orange_ball_detector')
+rate = rospy.Rate(60)
 cam_width = 640
 cam_height = 480
 
-caught_lower_threshold = int(cam_height * 0.80)
+caught_lower_threshold = int(cam_height * 0.70)
 ## Ball centering variables
 offset = 10
 center_x = cam_width / 2 + offset
 center_y = cam_height / 2
-threshold_x1 = center_x - int(cam_width / 120) + offset
-threshold_x2 = center_x + int(cam_width / 120) + offset
+threshold_x1 = center_x - int(cam_width / 100) + offset
+threshold_x2 = center_x + int(cam_width / 100) + offset
+ball_threshold_x1 = center_x - int(cam_width / 40) + offset
+ball_threshold_x2 = center_x + int(cam_width / 40) + offset
+toktok_threshold_x1 = center_x - int(cam_width / 10) + offset
+toktok_threshold_x2 = center_x + int(cam_width / 10) + offset
 
 ball_threshold_low = int(cam_height * 19.5 / 24)
 ball_threshold_high = int(cam_height / 6)
 
 basket_threshold_low = int(cam_height * 2 / 6)
 
-def slider_callback(string):
-    rospy.loginfo(string)
+def slider_callback(data):
+    global lower_green, upper_green
+    parsed_data = data.data.split(" ")
+    lower_green = np.array([int(parsed_data[0]), int(parsed_data[2]), int(parsed_data[4])])
+    upper_green = np.array([int(parsed_data[1]), int(parsed_data[3]), int(parsed_data[5])])
+    # rospy.loginfo(string)
 
 rospy.Subscriber("slider_values", String, slider_callback)
 
@@ -60,12 +70,14 @@ def distanceBalls(color, mask, frame):
             ((x, y), radius) = cv2.minEnclosingCircle(c)
             box = cv2.minAreaRect(c)
             box = cv2.boxPoints(box)
+            (p1, p2, p3, p4) = box
+            width = max(abs(p1[0] - p2[0]), abs(p1[0] - p3[0]))
+            dim1 = max(hypot(p1[0] - p2[0], p1[1] - p2[1]), hypot(p1[0] - p4[0], p1[1] - p4[1]))
+            dim2 = min(hypot(p1[0] - p2[0], p1[1] - p2[1]), hypot(p1[0] - p4[0], p1[1] - p4[1]))
             try:
                 # only proceed if the radius meets a minimum size
                 #rospy.loginfo(index % 10)
-                if radius > 3:
-                    (p1, p2, p3, p4) = box
-                    width = max(abs(p1[0] - p2[0]), abs(p1[0] - p3[0]))
+                if radius > 3: # and (0.75 < dim1 / dim2 < 1.25)
                     # rospy.loginfo(width)
                     #sorted(box, key=lambda s: s[1])
                     #width = abs(box[0][1] - box[3][1])
@@ -141,16 +153,50 @@ def distanceBaskets(color, mask, frame):
     return
 
 def draw_helper_lines(frame):
-    # Threshold lines - light blue
+    # basket Threshold lines - light blue
     cv2.line(frame, (threshold_x1, 0), (threshold_x1, cam_height), (255,255,0))
     cv2.line(frame, (threshold_x2, 0), (threshold_x2, cam_height), (255,255,0))
+    # ball Threshold lines -
+    cv2.line(frame, (ball_threshold_x1, 0), (ball_threshold_x1, cam_height), (255,180,180))
+    cv2.line(frame, (ball_threshold_x2, 0), (ball_threshold_x2, cam_height), (255,180,180))
     # Lowest center of basket - purple
     cv2.line(frame, (0, basket_threshold_low), (cam_width, basket_threshold_low), (255, 0, 255))
     # Ball thresholds - yellow
     cv2.line(frame, (0, ball_threshold_low), (cam_width, ball_threshold_low), (0, 255, 255))
     cv2.line(frame, (0, ball_threshold_high), (cam_width, ball_threshold_high), (0, 255, 255))
+    # Toktok thresholds
+    cv2.line(frame, (toktok_threshold_x1, 0), (toktok_threshold_x1, cam_height), (0, 255, 255))
+    cv2.line(frame, (toktok_threshold_x2, 0), (toktok_threshold_x2, cam_height), (0, 255, 255))
     #Ball is caught
     cv2.line(frame, (0, caught_lower_threshold), (cam_width, caught_lower_threshold), (0, 0, 255))
+
+
+#lower_orange = np.array([5,100,140])
+#upper_orange = np.array([15,190,255])
+# basket blue
+lower_blue = np.array([30, 50, 00])
+upper_blue = np.array([60, 160, 140])
+
+
+# basket magenta
+# lower_orange = np.array([0, 100, 75])
+# upper_orange = np.array([25, 255, 150])
+#
+# # basket magenta 2
+# lower_magenta2 = np.array([155, 100, 150])
+# upper_magenta2 = np.array([180, 255, 240])
+
+# basket magenta
+lower_magenta = np.array([0, 190, 140])
+upper_magenta = np.array([20, 220, 210])
+
+# ball
+lower_green = np.array([32, 194, 125])
+upper_green = np.array([118, 255, 255])
+
+#HSV Color
+#lower_green = np.array([70, 100, 100])
+#upper_green = np.array([147, 100, 100])
 
 while not rospy.is_shutdown():
     # Take each frame
@@ -159,34 +205,10 @@ while not rospy.is_shutdown():
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     # define range of blue color in HSV
 
-    #lower_orange = np.array([5,100,140])
-    #upper_orange = np.array([15,190,255])
-    # basket blue
-    lower_blue = np.array([80, 0, 20])
-    upper_blue = np.array([100, 255, 150])
-
-
-    # basket magenta
-    # lower_orange = np.array([0, 100, 75])
-    # upper_orange = np.array([25, 255, 150])
-    #
-    # # basket magenta 2
-    # lower_magenta2 = np.array([155, 100, 150])
-    # upper_magenta2 = np.array([180, 255, 240])
-
-
-    # ball
-    lower_green = np.array([40, 150, 60])
-    upper_green = np.array([80, 255, 255])
-
-    #HSV Color
-    #lower_green = np.array([70, 100, 100])
-    #upper_green = np.array([147, 100, 100])
-
-
     # Threshold the HSV image to get only blue colors
     mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
     # mask_orange = cv2.inRange(hsv, lower_orange, upper_orange)
+    mask_magenta = cv2.inRange(hsv, lower_magenta , upper_magenta)
     mask_green = cv2.inRange(hsv, lower_green, upper_green)
     # mask_magenta2 = cv2.inRange(hsv, lower_magenta2, upper_magenta2)
     # mask_orange = cv2.erode(mask_orange, None, iterations=1)
@@ -198,13 +220,13 @@ while not rospy.is_shutdown():
     mask_ball = mask_green
     # mask_basket = mask_orange + mask_magenta2
 
-    mask_ball = cv2.erode(mask_ball, None, iterations=2)
+    mask_ball = cv2.erode(mask_ball, None, iterations=1)
     mask_ball = cv2.dilate(mask_ball, None, iterations=1)
 
-    mask_basket = cv2.erode(mask_basket, None, iterations=3)
-    mask_basket = cv2.dilate(mask_basket, None, iterations=4)
+    mask_basket = cv2.erode(mask_basket, None, iterations=1)
+    mask_basket = cv2.dilate(mask_basket, None, iterations=2)
 
-    mask = mask_basket
+    mask = mask_ball
 
     distanceBalls("green", mask_ball, frame)
     distanceBaskets("orange", mask_basket, frame)
@@ -219,5 +241,5 @@ while not rospy.is_shutdown():
     k = cv2.waitKey(5) & 0xFF
     if k == 27:
         break
+    rate.sleep()
 cv2.destroyAllWindows()
-
