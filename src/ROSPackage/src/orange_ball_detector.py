@@ -22,8 +22,8 @@ threshold_x1 = center_x - int(cam_width / 100) + offset
 threshold_x2 = center_x + int(cam_width / 100) + offset
 ball_threshold_x1 = center_x - int(cam_width / 40) + offset
 ball_threshold_x2 = center_x + int(cam_width / 40) + offset
-toktok_threshold_x1 = center_x - int(cam_width / 10) + offset
-toktok_threshold_x2 = center_x + int(cam_width / 10) + offset
+toktok_threshold_x1 = center_x - int(cam_width / 5) + offset
+toktok_threshold_x2 = center_x + int(cam_width / 5) + offset
 
 ball_threshold_low = int(cam_height * 19.5 / 24)
 ball_threshold_high = int(cam_height / 6)
@@ -89,7 +89,7 @@ def distanceBalls(color, mask, frame):
                     cv2.circle(frame, center, int(radius),
                                (0, 255, 255), 2)
                     cv2.circle(frame, center, 5, (0, 0, 255), -1)
-                    ballDistanceInfo(color+"--"+str(x)+"--"+str(y)+"--"+str(width))
+                    ballDistanceInfo(color+"--"+str(center[0])+"--"+str(center[1])+"--"+str(width))
                 else:
                     ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1)+"--"+str(-1))
             except ZeroDivisionError:
@@ -125,7 +125,6 @@ def distanceBaskets(color, mask, frame):
         if c is not None:
             ((x, y), radius) = cv2.minEnclosingCircle(c)
             box = cv2.minAreaRect(c)
-            # rospy.loginfo(cv2.contourArea(c))
             box = cv2.boxPoints(box)
             try:
                 # only proceed if the radius meets a minimum size
@@ -143,7 +142,7 @@ def distanceBaskets(color, mask, frame):
                     cv2.circle(frame, center, int(radius),
                                (0, 255, 255), 2)
                     cv2.circle(frame, center, 5, (255, 0, 255), -1)
-                    ballDistanceInfo(color+"--"+str(x)+"--"+str(y)+"--"+str(width))
+                    ballDistanceInfo(color+"--"+str(center[0])+"--"+str(center[1])+"--"+str(width))
                 else:
                     ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1)+"--"+str(-1))
             except ZeroDivisionError:
@@ -176,6 +175,8 @@ def draw_helper_lines(frame):
 # basket blue
 lower_blue = np.array([30, 50, 00])
 upper_blue = np.array([60, 160, 140])
+# lower_blue = np.array([48, 122, 33])
+# upper_blue = np.array([108, 209, 208])
 
 
 # basket magenta
@@ -193,10 +194,9 @@ upper_magenta = np.array([20, 220, 210])
 # ball
 lower_green = np.array([32, 194, 125])
 upper_green = np.array([118, 255, 255])
+# lower_green = np.array([38, 194, 4])
+# upper_green = np.array([57, 255, 229])
 
-#HSV Color
-#lower_green = np.array([70, 100, 100])
-#upper_green = np.array([147, 100, 100])
 
 while not rospy.is_shutdown():
     # Take each frame
