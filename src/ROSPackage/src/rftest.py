@@ -5,7 +5,7 @@ import rospy
 from std_msgs.msg import Bool
 pub = rospy.Publisher('referee', Bool, queue_size=2)
 rospy.init_node('rf_node')
-rate = rospy.Rate(200)
+# rate = rospy.Rate(200)
 my_field = 'O'
 my_letter = 'P'
 my_ident = my_field + my_letter
@@ -18,6 +18,7 @@ while not rospy.is_shutdown():
         tdata += s.read(data_left) # Do the read and combine it with the first character
         cmd = tdata.decode()[5:17]
         ident = cmd[1:3]
+        # rospy.loginfo(tdata)
         #print("Recieved: " + tdata.decode())
         #print("Identiy: " + ident)
         req = cmd.split("-")[0][3:]
@@ -31,4 +32,4 @@ while not rospy.is_shutdown():
             if ident == my_ident:
                 s.write(str.encode("rf:a" + my_ident + "ACK------\n"))
             #print("rf:a"+ my_ident + "ACK------\n")
-        rate.sleep()
+        # rate.sleep()

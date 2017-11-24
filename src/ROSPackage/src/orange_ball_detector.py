@@ -14,9 +14,10 @@ cam_width = 640
 cam_height = 480
 
 caught_lower_threshold = int(cam_height * 0.70)
+speedy_caught_lower_threshold = int(cam_height * 0.6)
 ## Ball centering variables
-offset = 10
-center_x = cam_width / 2 + offset
+offset = 30
+center_x = cam_width / 2
 center_y = cam_height / 2
 threshold_x1 = center_x - int(cam_width / 100) + offset
 threshold_x2 = center_x + int(cam_width / 100) + offset
@@ -25,7 +26,7 @@ ball_threshold_x2 = center_x + int(cam_width / 40) + offset
 toktok_threshold_x1 = center_x - int(cam_width / 5) + offset
 toktok_threshold_x2 = center_x + int(cam_width / 5) + offset
 
-ball_threshold_low = int(cam_height * 19.5 / 24)
+ball_threshold_low = int(cam_height * 20 / 24)
 ball_threshold_high = int(cam_height / 6)
 
 basket_threshold_low = int(cam_height * 2 / 6)
@@ -168,6 +169,7 @@ def draw_helper_lines(frame):
     cv2.line(frame, (toktok_threshold_x2, 0), (toktok_threshold_x2, cam_height), (0, 255, 255))
     #Ball is caught
     cv2.line(frame, (0, caught_lower_threshold), (cam_width, caught_lower_threshold), (0, 0, 255))
+    cv2.line(frame, (0, speedy_caught_lower_threshold), (cam_width, speedy_caught_lower_threshold), (0, 0, 255))
 
 
 #lower_orange = np.array([5,100,140])
