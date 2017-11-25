@@ -27,15 +27,15 @@ toktok_threshold_x1 = center_x - int(cam_width / 5) + offset
 toktok_threshold_x2 = center_x + int(cam_width / 5) + offset
 
 ball_threshold_low = int(cam_height * 20 / 24)
-ball_threshold_high = int(cam_height / 6)
+ball_threshold_high = int(cam_height * 5 / 36)
 
 basket_threshold_low = int(cam_height * 2 / 6)
 
 def slider_callback(data):
-    global lower_green, upper_green
+    global lower_magenta, upper_magenta
     parsed_data = data.data.split(" ")
-    lower_green = np.array([int(parsed_data[0]), int(parsed_data[2]), int(parsed_data[4])])
-    upper_green = np.array([int(parsed_data[1]), int(parsed_data[3]), int(parsed_data[5])])
+    lower_magenta = np.array([int(parsed_data[0]), int(parsed_data[2]), int(parsed_data[4])])
+    upper_magenta = np.array([int(parsed_data[1]), int(parsed_data[3]), int(parsed_data[5])])
     # rospy.loginfo(string)
 
 rospy.Subscriber("slider_values", String, slider_callback)
@@ -152,6 +152,50 @@ def distanceBaskets(color, mask, frame):
         ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1)+"---1")
     return
 
+
+def distanceOpposingBaskets(color, mask, frame):
+    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+                            cv2.CHAIN_APPROX_SIMPLE)[-2]
+    center = None
+    if len(cnts) > 0:
+        c = None
+        center = None
+        m_area = 0
+        for cnt in cnts:
+            area = cv2.contourArea(cnt)
+            moms = cv2.moments(cnt)
+            try:
+                cent = (int(moms["m10"] / moms["m00"]), int(moms["m01"] / moms["m00"]))
+                if area >= m_area and cent[1] < basket_threshold_low:
+                    m_area = area
+                    c = cnt
+                    center = cent
+            except ZeroDivisionError:
+                pass
+        if c is not None:
+            ((x, y), radius) = cv2.minEnclosingCircle(c)
+            box = cv2.minAreaRect(c)
+            box = cv2.boxPoints(box)
+            try:
+                if radius > 10:
+                    (p1, p2, p3, p4) = box
+                    width = max(abs(p1[0] - p2[0]), abs(p1[0] - p3[0]))
+                    for (x, y) in box:
+            		          cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)
+                    cv2.circle(frame, center, int(radius),
+                               (0, 255, 255), 2)
+                    cv2.circle(frame, center, 5, (255, 255, 0), -1)
+                    ballDistanceInfo(color+"--"+str(center[0])+"--"+str(center[1])+"--"+str(width))
+                else:
+                    pass
+                    ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1)+"--"+str(-1))
+            except ZeroDivisionError:
+                pass
+    else:
+        pass
+        ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1)+"---1")
+    return
+
 def draw_helper_lines(frame):
     # basket Threshold lines - light blue
     cv2.line(frame, (threshold_x1, 0), (threshold_x1, cam_height), (255,255,0))
@@ -190,8 +234,8 @@ upper_blue = np.array([60, 160, 140])
 # upper_magenta2 = np.array([180, 255, 240])
 
 # basket magenta
-lower_magenta = np.array([0, 190, 140])
-upper_magenta = np.array([20, 220, 210])
+lower_magenta = np.array([13, 137, 140])
+upper_magenta = np.array([19, 187, 239])
 
 # ball
 lower_green = np.array([32, 194, 125])
@@ -212,13 +256,9 @@ while not rospy.is_shutdown():
     # mask_orange = cv2.inRange(hsv, lower_orange, upper_orange)
     mask_magenta = cv2.inRange(hsv, lower_magenta , upper_magenta)
     mask_green = cv2.inRange(hsv, lower_green, upper_green)
-    # mask_magenta2 = cv2.inRange(hsv, lower_magenta2, upper_magenta2)
-    # mask_orange = cv2.erode(mask_orange, None, iterations=1)
-    # mask_orange = cv2.dilate(mask_orange, None, iterations=1)
-    # mask_green = cv2.erode(mask_green, None, iterations=2)
-    # mask_green = cv2.dilate(mask_green, None, iterations=2)
 
     mask_basket = mask_blue
+    mask_opponent = mask_magenta
     mask_ball = mask_green
     # mask_basket = mask_orange + mask_magenta2
 
@@ -228,10 +268,14 @@ while not rospy.is_shutdown():
     mask_basket = cv2.erode(mask_basket, None, iterations=1)
     mask_basket = cv2.dilate(mask_basket, None, iterations=2)
 
+    mask_opponent = cv2.erode(mask_opponent, None, iterations=1)
+    mask_opponent = cv2.dilate(mask_opponent, None, iterations=2)
+
     mask = mask_ball
 
     distanceBalls("green", mask_ball, frame)
     distanceBaskets("orange", mask_basket, frame)
+    distanceOpposingBaskets("opposing", mask_opponent, frame)
     draw_helper_lines(frame)
 
     # Bitwise-AND mask and original image
