@@ -4,14 +4,11 @@ from std_msgs.msg import String, Bool
 from time import sleep, time
 
 from robot_movements import *
-
+from global_vars import *
 rospy.init_node('autonomous_logic_node', anonymous=True)
 rate = rospy.Rate(300)
 #  If referee has given the start but not the stop command
 allowed_to_play = True
-#  Camera dimensions for reference
-cam_width = 640
-cam_height = 480
 #  Current coordinates of the main ball and the basket in sight
 ball_x = -1
 ball_y = -1
@@ -20,6 +17,7 @@ basket_y = -1
 opposing_x = -1
 opposing_y = -1
 basket_width = 0
+lower_basket_y = -1
 #  Booleans that get updated via callbacks
 basket_to_the_left = True
 ball_in_sight = False
@@ -34,21 +32,6 @@ max_centering_move_speed = 12
 max_move_speed = 12
 
 sleep_time = 0.25
-
-speedy_caught_lower_threshold = cam_height * 0.6
-caught_lower_threshold = cam_height * 0.70
-## Ball centering variables
-offset = 30
-center_x = cam_width / 2
-center_y = cam_height / 2
-ball_threshold_x1 = center_x - int(cam_width / 40) + offset
-ball_threshold_x2 = center_x + int(cam_width / 40) + offset
-threshold_x1 = center_x - int(cam_width / 100) + offset
-threshold_x2 = center_x + int(cam_width / 100) + offset
-toktok_threshold_x1 = center_x - int(cam_width / 5) + offset
-toktok_threshold_x2 = center_x + int(cam_width / 5) + offset
-ball_x_offset = 0
-basket_x_offset = 0
 widths = [29,31,35,34,39,41,42,45,46,48,49,51,48,48.5,51,53.33,54,56,
 59.33, 61, 64.75, 67.333, 70, 74, 79.25, 81, 87.75, 95.6, 103]
 
@@ -71,7 +54,7 @@ def referee_callback(data):
 def cam_callback(data):
     global ball_x, ball_y, ball_in_sight, basket_in_sight, basket_x, basket_y
     global basket_width, ball_caught, ball_centered, basket_centered
-    global opposing_x, opposing_y, basket_to_the_left
+    global opposing_x, opposing_y, basket_to_the_left, lower_basket_y
     #rospy.loginfo(data.data)
     parsed_data = data.data.split("--")
     if parsed_data[0] == 'green':
@@ -83,7 +66,7 @@ def cam_callback(data):
             #rospy.loginfo(data.data)
             # rospy.loginfo("%s %d %d", ball_in_sight, ball_x, ball_y)
         else:
-            ball_x = float(parsed_data[1]) + ball_x_offset
+            ball_x = float(parsed_data[1])
             ball_y = float(parsed_data[2])
             # rospy.loginfo("Ball in toktok: %i, in ball: %i, in basket: %i", in_toktok_threshold(ball_x), in_mid_threshold(ball_x), in_basket_threshold(ball_x))
             if ball_in_sight == False:
@@ -126,9 +109,10 @@ def cam_callback(data):
                 rospy.loginfo("Basket to the left %i", basket_to_the_left)
             basket_in_sight = False
         else:
-            basket_x = float(parsed_data[1]) + basket_x_offset
+            basket_x = float(parsed_data[1])
             basket_y = float(parsed_data[2])
             basket_width = float(parsed_data[3])
+            lower_basket_y = int(parsed_data[4])
             # rospy.loginfo("Basket cords: %f %f, x1: %d x2: %d, Basket centered %i", basket_x, basket_y, threshold_x1, threshold_x2, basket_is_centered())
             basket_in_sight = True
             if basket_centered and not basket_is_centered():

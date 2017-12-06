@@ -5,34 +5,17 @@ import rospy
 from std_msgs.msg import String
 from time import sleep
 from math import *
+from global_vars import *
 cap = cv2.VideoCapture(0)
-# cap.set(13, 0.6)
+cap.set(3,cam_width)
+cap.set(4,cam_height)
 pub = rospy.Publisher('balldistance', String, queue_size=2)
 rospy.init_node('orange_ball_detector')
 rate = rospy.Rate(60)
-cam_width = 640
-cam_height = 480
-
-caught_lower_threshold = int(cam_height * 0.70)
-speedy_caught_lower_threshold = int(cam_height * 0.6)
-## Ball centering variables
-offset = 30
-center_x = cam_width / 2
-center_y = cam_height / 2
-threshold_x1 = center_x - int(cam_width / 100) + offset
-threshold_x2 = center_x + int(cam_width / 100) + offset
-ball_threshold_x1 = center_x - int(cam_width / 40) + offset
-ball_threshold_x2 = center_x + int(cam_width / 40) + offset
-toktok_threshold_x1 = center_x - int(cam_width / 5) + offset
-toktok_threshold_x2 = center_x + int(cam_width / 5) + offset
-
-ball_threshold_low = int(cam_height * 20 / 24)
-ball_threshold_high = int(cam_height * 5 / 36)
-
-basket_threshold_low = int(cam_height * 2 / 6)
 
 def slider_callback(data):
-    global lower_magenta, upper_magenta
+    global lower_green, upper_green, lower_magenta, upper_magenta
+    global lower_blue, upper_blue
     parsed_data = data.data.split(" ")
     lower_magenta = np.array([int(parsed_data[0]), int(parsed_data[2]), int(parsed_data[4])])
     upper_magenta = np.array([int(parsed_data[1]), int(parsed_data[3]), int(parsed_data[5])])
@@ -78,7 +61,7 @@ def distanceBalls(color, mask, frame):
             try:
                 # only proceed if the radius meets a minimum size
                 #rospy.loginfo(index % 10)
-                if radius > 3: # and (0.75 < dim1 / dim2 < 1.25)
+                if radius > 2: # and (0.75 < dim1 / dim2 < 1.25)
                     # rospy.loginfo(width)
                     #sorted(box, key=lambda s: s[1])
                     #width = abs(box[0][1] - box[3][1])
@@ -117,7 +100,7 @@ def distanceBaskets(color, mask, frame):
             moms = cv2.moments(cnt)
             try:
                 cent = (int(moms["m10"] / moms["m00"]), int(moms["m01"] / moms["m00"]))
-                if area >= m_area and cent[1] < basket_threshold_low:
+                if area > m_area and cent[1] < basket_threshold_low:
                     m_area = area
                     c = cnt
                     center = cent
@@ -137,19 +120,21 @@ def distanceBaskets(color, mask, frame):
                     # rospy.loginfo(width)
                     for (x, y) in box:
             		          cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)
+                    lower_basket_y = tuple(c[c[:, :, 1].argmax()][0])[1]
                     #rospy.loginfo(width)
                     # draw the circle and centroid on the frame,
                     # then update the list of tracked points
                     cv2.circle(frame, center, int(radius),
                                (0, 255, 255), 2)
                     cv2.circle(frame, center, 5, (255, 0, 255), -1)
-                    ballDistanceInfo(color+"--"+str(center[0])+"--"+str(center[1])+"--"+str(width))
+                    cv2.line(frame,(0, lower_basket_y), (cam_width, lower_basket_y), (255, 0, 255))
+                    ballDistanceInfo(color+"--"+str(center[0])+"--"+str(center[1])+"--"+str(width)+"--"+str(lower_basket_y))
                 else:
-                    ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1)+"--"+str(-1))
+                    ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1)+"--"+str(-1)+"--"+str(-1))
             except ZeroDivisionError:
                 pass
     else:
-        ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1)+"---1")
+        ballDistanceInfo(color+"--"+str(-1)+"--"+str(-1)+"--"+str(-1)+"---1")
     return
 
 
@@ -215,38 +200,23 @@ def draw_helper_lines(frame):
     cv2.line(frame, (0, caught_lower_threshold), (cam_width, caught_lower_threshold), (0, 0, 255))
     cv2.line(frame, (0, speedy_caught_lower_threshold), (cam_width, speedy_caught_lower_threshold), (0, 0, 255))
 
-
-#lower_orange = np.array([5,100,140])
-#upper_orange = np.array([15,190,255])
 # basket blue
-lower_blue = np.array([30, 50, 00])
-upper_blue = np.array([60, 160, 140])
-# lower_blue = np.array([48, 122, 33])
-# upper_blue = np.array([108, 209, 208])
-
+lower_blue = np.array([97, 100, 0])
+upper_blue = np.array([116, 255, 255])
 
 # basket magenta
-# lower_orange = np.array([0, 100, 75])
-# upper_orange = np.array([25, 255, 150])
-#
-# # basket magenta 2
-# lower_magenta2 = np.array([155, 100, 150])
-# upper_magenta2 = np.array([180, 255, 240])
-
-# basket magenta
-lower_magenta = np.array([13, 137, 140])
-upper_magenta = np.array([19, 187, 239])
+lower_magenta = np.array([169, 130, 105])
+upper_magenta = np.array([180, 255, 255])
 
 # ball
-lower_green = np.array([32, 194, 125])
-upper_green = np.array([118, 255, 255])
-# lower_green = np.array([38, 194, 4])
-# upper_green = np.array([57, 255, 229])
+lower_green = np.array([21, 48, 0])
+upper_green = np.array([65, 255, 255])
 
 
 while not rospy.is_shutdown():
     # Take each frame
     _, frame = cap.read()
+    frame = cv2.flip(frame, -1)
     # Convert BGR to HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     # define range of blue color in HSV
@@ -257,8 +227,8 @@ while not rospy.is_shutdown():
     mask_magenta = cv2.inRange(hsv, lower_magenta , upper_magenta)
     mask_green = cv2.inRange(hsv, lower_green, upper_green)
 
-    mask_basket = mask_blue
-    mask_opponent = mask_magenta
+    mask_basket = mask_magenta
+    mask_opponent = mask_blue
     mask_ball = mask_green
     # mask_basket = mask_orange + mask_magenta2
 
@@ -266,12 +236,12 @@ while not rospy.is_shutdown():
     mask_ball = cv2.dilate(mask_ball, None, iterations=1)
 
     mask_basket = cv2.erode(mask_basket, None, iterations=1)
-    mask_basket = cv2.dilate(mask_basket, None, iterations=2)
+    mask_basket = cv2.dilate(mask_basket, None, iterations=1)
 
     mask_opponent = cv2.erode(mask_opponent, None, iterations=1)
-    mask_opponent = cv2.dilate(mask_opponent, None, iterations=2)
+    mask_opponent = cv2.dilate(mask_opponent, None, iterations=1)
 
-    mask = mask_ball
+    mask = mask_basket
 
     distanceBalls("green", mask_ball, frame)
     distanceBaskets("orange", mask_basket, frame)
@@ -280,9 +250,16 @@ while not rospy.is_shutdown():
 
     # Bitwise-AND mask and original image
     res = cv2.bitwise_and(frame, frame, mask=mask)
+    cv2.namedWindow('mask',cv2.WINDOW_NORMAL)
+    cv2.namedWindow('res',cv2.WINDOW_NORMAL)
+    cv2.namedWindow('frame',cv2.WINDOW_NORMAL)
+    cv2.resizeWindow('mask', cam_width, cam_height)
+    cv2.resizeWindow('res', cam_width, cam_height)
+    cv2.resizeWindow('frame', cam_width, cam_height)
     cv2.imshow('mask', mask)
     cv2.imshow('res', res)
     cv2.imshow('frame', frame)
+
     #cv2.imshow('mask', res)
     k = cv2.waitKey(5) & 0xFF
     if k == 27:
