@@ -227,8 +227,8 @@ while not rospy.is_shutdown():
     mask_magenta = cv2.inRange(hsv, lower_magenta , upper_magenta)
     mask_green = cv2.inRange(hsv, lower_green, upper_green)
 
-    mask_basket = mask_magenta
-    mask_opponent = mask_blue
+    mask_basket = mask_blue
+    mask_opponent = mask_magenta
     mask_ball = mask_green
     # mask_basket = mask_orange + mask_magenta2
 
