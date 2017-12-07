@@ -17,8 +17,8 @@ def slider_callback(data):
     global lower_green, upper_green, lower_magenta, upper_magenta
     global lower_blue, upper_blue
     parsed_data = data.data.split(" ")
-    lower_magenta = np.array([int(parsed_data[0]), int(parsed_data[2]), int(parsed_data[4])])
-    upper_magenta = np.array([int(parsed_data[1]), int(parsed_data[3]), int(parsed_data[5])])
+    lower_blue = np.array([int(parsed_data[0]), int(parsed_data[2]), int(parsed_data[4])])
+    upper_blue = np.array([int(parsed_data[1]), int(parsed_data[3]), int(parsed_data[5])])
     # rospy.loginfo(string)
 
 rospy.Subscriber("slider_values", String, slider_callback)
@@ -44,7 +44,7 @@ def distanceBalls(color, mask, frame):
             moms = cv2.moments(cnt)
             try:
                 cent = (int(moms["m10"] / moms["m00"]), int(moms["m01"] / moms["m00"]))
-                if area >= m_area and cent[1] > ball_threshold_high and cent[1] < ball_threshold_low:
+                if area >= m_area and cent[1] > ball_threshold_high: # and cent[1] < ball_threshold_low
                     m_area = area
                     c = cnt
                     center = cent
@@ -209,7 +209,7 @@ lower_magenta = np.array([169, 130, 105])
 upper_magenta = np.array([180, 255, 255])
 
 # ball
-lower_green = np.array([21, 48, 0])
+lower_green = np.array([32, 76, 72])
 upper_green = np.array([65, 255, 255])
 
 
@@ -227,8 +227,8 @@ while not rospy.is_shutdown():
     mask_magenta = cv2.inRange(hsv, lower_magenta , upper_magenta)
     mask_green = cv2.inRange(hsv, lower_green, upper_green)
 
-    mask_basket = mask_blue
-    mask_opponent = mask_magenta
+    mask_basket = mask_magenta
+    mask_opponent = mask_blue
     mask_ball = mask_green
     # mask_basket = mask_orange + mask_magenta2
 
@@ -242,6 +242,8 @@ while not rospy.is_shutdown():
     mask_opponent = cv2.dilate(mask_opponent, None, iterations=1)
 
     mask = mask_basket
+
+    cv2.ellipse(frame, (center_x, int(cam_height*0.992)), (100, 75), 0, 0, 360, (255, 255, 255), -1)
 
     distanceBalls("green", mask_ball, frame)
     distanceBaskets("orange", mask_basket, frame)

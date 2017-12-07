@@ -5,7 +5,7 @@ from std_msgs.msg import String
 from robot_movements import *
 rospy.init_node('mapper_node', anonymous=True)
 # TODO: Add throwing functionality to node
-# init_robot_connection()
+init_robot_connection()
 
 root = tk.Tk()
 y_label = tk.Label(root, text="y-value: ")
@@ -30,7 +30,7 @@ def cam_callback(data):
     global lower_basket_y
     parsed_data = data.data.split("--")
     if parsed_data[0] == 'orange' and float(parsed_data[1]) >= 0:
-        lower_basket_y = parsed_data[4]
+        lower_basket_y = parsed_data[3] # change between y-value and width
         y_label["text"] = 'y_value: ' + lower_basket_y
 
 rospy.Subscriber("balldistance", String, cam_callback)
@@ -42,10 +42,10 @@ def return_key_pressed(event):
         current_speed = int(speed_entry.get())
     else:
         current_speed = 0
-    # rospy.loginfo("Hit Enter %d", current_speed)
 
 def update_thrower():
-    # set_thrower_speed(current_speed)
+    if current_speed != 0:
+        set_thrower_speed(current_speed)
     # rospy.loginfo("Thrower %i", current_speed)
     root.after(500, update_thrower)
 
@@ -53,7 +53,7 @@ def save_values():
     powers_l.append(int(speed_entry.get()))
     update_powers()
 
-    yvalues_l.append(int(lower_basket_y))
+    yvalues_l.append(int(float(lower_basket_y)))
     update_yvalues()
 
 def update_powers():

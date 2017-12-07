@@ -102,8 +102,8 @@ def move_forward_state(speed):
     set_speeds_for_direction(0, speed)
 
 
-def move_backward_state():
-    set_speeds_for_direction(180, robot_speed)
+def move_backward_state(speed):
+    set_speeds_for_direction(180, speed)
 
 
 def turn_left_state(speed):

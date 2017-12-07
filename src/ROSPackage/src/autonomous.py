@@ -93,10 +93,10 @@ def cam_callback(data):
         if opposing_x >= 0:
             if opposing_x < center_x and basket_to_the_left:
                 basket_to_the_left = False
-                rospy.loginfo("Basket to the left %i, opposing_x: %d", basket_to_the_left, opposing_x)
+                # rospy.loginfo("Basket to the left %i, opposing_x: %d", basket_to_the_left, opposing_x)
             elif opposing_x >= center_x and not basket_to_the_left:
                 basket_to_the_left = True
-                rospy.loginfo("Basket to the left %i, opposing_x: %d", basket_to_the_left, opposing_x)
+                # rospy.loginfo("Basket to the left %i, opposing_x: %d", basket_to_the_left, opposing_x)
 
 
     elif parsed_data[0] == 'orange':
@@ -106,7 +106,7 @@ def cam_callback(data):
                     basket_to_the_left = True
                 else:
                     basket_to_the_left = False
-                rospy.loginfo("Basket to the left %i", basket_to_the_left)
+                # rospy.loginfo("Basket to the left %i", basket_to_the_left)
             basket_in_sight = False
         else:
             basket_x = float(parsed_data[1])
@@ -132,12 +132,12 @@ def center_ball():
         else:
             if ball_x < ball_threshold_x1:
                 if toktok_threshold_x1 < ball_x < toktok_threshold_x2:
-                    turn_left_state(5)
+                    turn_left_state(4)
                 else:
                     turn_left_state(13)
             elif ball_x > ball_threshold_x2:
                 if toktok_threshold_x1 < ball_x < toktok_threshold_x2:
-                    turn_right_state(5)
+                    turn_right_state(4)
                 else:
                     turn_right_state(13)
 
@@ -190,6 +190,9 @@ def keep_distance():
     if ball_in_sight:
         if toktok_threshold_x1 < ball_x < toktok_threshold_x2 and not ball_is_caught():
             move_forward_state(max_move_speed)
+            sleep(sleep_time)
+        if ball_is_caught() and ball_y > ball_threshold_low:
+            move_backward_state(max_move_speed)
             sleep(sleep_time)
             # stop_moving()
 
@@ -247,9 +250,10 @@ def in_basket_threshold(x):
 
 def transition_to_state(newstate):
     global state
-    stop_moving()
+    set_speeds_for_direction(0, 0)
     stop_rotating()
-    rospy.loginfo(newstate)
+    stop_moving()
+    # rospy.loginfo(newstate)
     state = newstate
 
 
@@ -263,7 +267,7 @@ def looking_for_ball():
         transition_to_state(moving_to_ball)
     else:
         # rospy.loginfo("ball not in sight")
-        turn_left_state(30)
+        turn_left_state(20)
         # stop_rotating()
 
 
@@ -351,7 +355,7 @@ def finding_basket():
 
 def throw_ball():
     global state
-    #rospy.loginfo("thowing ball state")
+    # rospy.loginfo("Width: %i", basket_width)
     set_thrower_speed(calculate_thrower_speed())
     move_forward_state(25)
     sleep(1)
